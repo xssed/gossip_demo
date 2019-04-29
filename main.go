@@ -16,7 +16,7 @@ import (
 var (
 	mtx        sync.RWMutex
 	members    = flag.String("members", "", "comma seperated list of members")
-	port       = flag.Int("port", 4002, "http port")
+	port       = flag.Int("port", 4003, "http port")
 	items      = map[string]string{}
 	broadcasts *memberlist.TransmitLimitedQueue
 )
@@ -35,7 +35,7 @@ func addHandler(w http.ResponseWriter, r *http.Request) {
 
 	b, err := json.Marshal([]*update{
 		&update{
-			Action: "add",
+			Cmd: "add",
 			Data: map[string]string{
 				key: val,
 			},
@@ -62,7 +62,7 @@ func delHandler(w http.ResponseWriter, r *http.Request) {
 
 	b, err := json.Marshal([]*update{
 		&update{
-			Action: "del",
+			Cmd: "del",
 			Data: map[string]string{
 				key: "",
 			},
