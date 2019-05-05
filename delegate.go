@@ -18,37 +18,38 @@ func (d *delegate) NotifyMsg(b []byte) {
 		return
 	}
 
+	//将通讯数据的头字节取出(自定义数据协议)
 	switch b[0] {
-	case 'd': // data
-		var updates []*update
-		if err := json.Unmarshal(b[1:], &updates); err != nil {
+	case 'd':
+		//定义数据包列表
+		var executes []*Execute
+		//绑定数据到数据包列表
+		if err := json.Unmarshal(b[1:], &executes); err != nil {
 			return
 		}
-		mtx.Lock()
-		for _, u := range updates {
+		//遍历取单个数据包操作
+		for _, u := range executes {
+			//把map[string]string的Data数据取出
 			for k, v := range u.Data {
 				switch u.Cmd {
 				case "add":
-					items[k] = v
+					data.Set(k, v)
 				case "del":
-					delete(items, k)
+					data.Delete(k)
 				}
 			}
 		}
-		mtx.Unlock()
 	}
 }
 
 //获取广播
 func (d *delegate) GetBroadcasts(overhead, limit int) [][]byte {
-	return broadcasts.GetBroadcasts(overhead, limit)
+	return nh.broadcasts.GetBroadcasts(overhead, limit)
 }
 
-//本地状态
+//本地状态，将数据转化成JSON数据返回
 func (d *delegate) LocalState(join bool) []byte {
-	mtx.RLock()
-	m := items
-	mtx.RUnlock()
+	m := data.GetItems()
 	b, _ := json.Marshal(m)
 	return b
 }
@@ -65,9 +66,7 @@ func (d *delegate) MergeRemoteState(buf []byte, join bool) {
 	if err := json.Unmarshal(buf, &m); err != nil {
 		return
 	}
-	mtx.Lock()
 	for k, v := range m {
-		items[k] = v
+		data.Set(k, v)
 	}
-	mtx.Unlock()
 }
