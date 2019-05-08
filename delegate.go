@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 )
 
 //代表
@@ -17,7 +18,6 @@ func (d *delegate) NotifyMsg(b []byte) {
 	if len(b) == 0 {
 		return
 	}
-
 	//将通讯数据的头字节取出(自定义数据协议)
 	switch b[0] {
 	case 'd':
@@ -30,16 +30,14 @@ func (d *delegate) NotifyMsg(b []byte) {
 		//遍历取单个数据包操作
 		for _, u := range executes {
 			//把map[string]string的Data数据取出
-			for k, v := range u.Data {
-				switch u.Cmd {
-				case "add":
-					data.Set(k, v)
-				case "del":
-					data.Delete(k)
-				}
+			jsons, errs := json.Marshal(&u) //转换成JSON返回的是byte[]
+			if errs != nil {
+				fmt.Println(errs.Error())
 			}
+			q.Push(string(jsons)) //将数据发送到队列
 		}
 	}
+	//fmt.Println(q.Size())
 }
 
 //获取广播
@@ -49,9 +47,7 @@ func (d *delegate) GetBroadcasts(overhead, limit int) [][]byte {
 
 //本地状态，将数据转化成JSON数据返回
 func (d *delegate) LocalState(join bool) []byte {
-	m := data.GetItems()
-	b, _ := json.Marshal(m)
-	return b
+	return []byte{}
 }
 
 //合并远程状态
@@ -61,12 +57,5 @@ func (d *delegate) MergeRemoteState(buf []byte, join bool) {
 	}
 	if !join {
 		return
-	}
-	var m map[string]string
-	if err := json.Unmarshal(buf, &m); err != nil {
-		return
-	}
-	for k, v := range m {
-		data.Set(k, v)
 	}
 }

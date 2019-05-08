@@ -11,14 +11,15 @@ func addHandler(w http.ResponseWriter, r *http.Request) {
 	val := r.Form.Get("val")
 	data.Set(key, val)
 
-	b, err := json.Marshal([]*Execute{
-		&Execute{
-			Cmd: "add",
-			Data: map[string]string{
-				key: val,
-			},
-		},
-	})
+	exedata := make(Execute)
+	exedata["cmd"] = "add"
+	exedata["key"] = key
+	exedata["val"] = val
+
+	var exedata_list []*Execute
+	exedata_list = append(exedata_list, &exedata)
+
+	b, err := json.Marshal(exedata_list)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -33,14 +34,15 @@ func delHandler(w http.ResponseWriter, r *http.Request) {
 	key := r.Form.Get("key")
 	data.Delete(key)
 
-	b, err := json.Marshal([]*Execute{
-		&Execute{
-			Cmd: "del",
-			Data: map[string]string{
-				key: "",
-			},
-		},
-	})
+	exedata := make(Execute)
+	exedata["cmd"] = "del"
+	exedata["key"] = key
+	exedata["val"] = ""
+
+	var exedata_list []*Execute
+	exedata_list = append(exedata_list, &exedata)
+
+	b, err := json.Marshal(exedata_list)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
