@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/xssed/owlcache/queue"
 )
@@ -28,8 +27,9 @@ func main() {
 	}
 
 	go func() {
+
 		for {
-			time.Sleep(time.Microsecond * 8)
+
 			size := q.Size()
 			if size >= 1 {
 				e := q.Pop()
@@ -55,6 +55,7 @@ func main() {
 
 				}
 			}
+
 		}
 	}()
 
